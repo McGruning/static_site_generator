@@ -14,8 +14,6 @@ class HTMLNode():
     def to_html(self):
         raise NotImplementedError
 
-
-
     def __repr__(self):
         if self.children is None:
             children_repr = "None"
@@ -26,19 +24,9 @@ class HTMLNode():
     
 
 class LeafNode(HTMLNode):
-    def __init__(self, tag, value,  props=None):
-        super().__init__(tag, value, props=props)
-        if  self.children is not None:
-            raise AttributeError("LeafNode cannot have children")
-        self.children = None
-
-    @property    
-    def children(self):
-        return None
-    
-    @children.setter
-    def children(self, _):
-        raise AttributeError("LeafNode cannot have children")
+    def __init__(self, tag, value, props=None):
+        super().__init__(tag, value, children=None, props=props)
+        self._children = None
 
     def to_html(self):
         if self.value is None:
@@ -46,3 +34,17 @@ class LeafNode(HTMLNode):
         if self.tag is None or self.tag == "":
             return self.value
         return f"<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>"
+
+class ParentNode(HTMLNode):
+    def __init__(self, tag, children, props=None):
+        if tag is None or tag == "":
+            raise ValueError("ParentNode must have a tag")
+        if children is None:
+            raise ValueError("ParentNode must have children")
+        if isinstance(children, list) and len(children) == 0:
+            raise ValueError("Children cannot be an empty list")
+        super().__init__(tag, children=children, props=props)
+
+    def to_html(self):
+        children_html = "".join(child.to_html() for child in self.children)
+        return f"<{self.tag}{self.props_to_html()}>{children_html}</{self.tag}>"
